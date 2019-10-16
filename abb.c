@@ -1,28 +1,28 @@
 #include "abb.h"
 #include <stdlib.h>
 
-/*definición del struct nodo */
-typedef struct n_abb{
-    struct n_abb* izq;
-    struct n_abb* der;
+/* Definición del struct nodo */
+typedef struct nodo {
+    struct nodo* izq;
+    struct nodo* der;
     void* dato;
     const char* clave;
-}n_abb_t; 
+} nodo_t;
 
 /* Definición del struct ab.*/
 struct abb {
-    n_abb_t* raiz;
+    nodo_t* raiz;
     abb_comparar_clave_t abb_comparar_clave;
     abb_destruir_dato_t abb_destruir_dato;
     size_t cont;
 };
 
-/*Definición del struct iterador.*/
+/* Definición del struct iterador.*/
 struct abb_iter{
 
 };
 
-/*prototipos de funciones nuestras*/
+/* Prototipos de funciones nuestras*/
 
 
 
@@ -39,8 +39,8 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
 
 }
 
-void *abb_borrar(abb_t *arbol, const char *clave){
-
+void *abb_borrar(abb_t *arbol, const char *clave) {
+  
 }
 
 void *abb_obtener(const abb_t *arbol, const char *clave){
@@ -48,11 +48,11 @@ void *abb_obtener(const abb_t *arbol, const char *clave){
 }
 
 bool abb_pertenece(const abb_t *arbol, const char *clave){
-
+  return buscar_dato(arbol->raiz, clave) != NULL;
 }
 
 size_t abb_cantidad(abb_t *arbol){
-
+  return arbol->cont;
 }
 
 void abb_destruir(abb_t *arbol){
@@ -61,6 +61,12 @@ void abb_destruir(abb_t *arbol){
 
 /*funciones nuestras*/
 
+void* buscar_nodo(nodo_t *raiz, char* clave, abb_comparar_clave_t abb_comparar_clave) {
+  if (!raiz) return NULL;
+  if (abb_comparar_clave(clave, raiz->clave) == 0) return raiz;
+  if (abb_comparar_clave(clave, raiz->clave) < 0) return buscar_nodo(raiz->izq, clave);
+  return buscar_nodo(raiz->der, clave);
+}
 
 
 /* ******************************************************************
