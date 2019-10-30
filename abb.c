@@ -154,10 +154,9 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol){
 
     iter->abb = arbol;
 
-    pila_apilar(iter->pila, iter->abb->raiz->clave);
-    while(iter->abb->raiz->izq){
-        pila_apilar(iter->abb->raiz->izq->clave);
-        iter->abb->raiz = iter->abb->raiz->izq;
+    pila_apilar(iter->pila, iter->abb->raiz);
+    while(pila_ver_tope(iter->pila)->izq){
+        pila_apilar(pila_ver_tope(iter->pila)->izq);
     }
     return iter;
 }
@@ -166,13 +165,11 @@ bool abb_iter_in_avanzar(abb_iter_t *iter){
 
     if (pila_esta_vacia(iter->pila)) return false;
 
-    pila_desapilar(iter->pila);
-    if (iter->abb->raiz->der){
-        pila_apilar(iter->abb->raiz->der->clave);
-        iter->abb->raiz = iter->abb->raiz->der;
-        while(iter->abb->raiz->izq){
-            pila_apilar(iter->abb->raiz->izq->clave);
-            iter->abb->raiz = iter->abb->raiz->izq;
+    n_abb_t* desapilado = pila_desapilar(iter->pila);
+    if (desapilado->der){
+        pila_apilar(desapilado->der);
+        while(pila_ver_tope(iter->pila)->izq){
+            pila_apilar(pila_ver_tope(iter->pila)->izq);
         }
     }
     return true;
@@ -181,7 +178,7 @@ bool abb_iter_in_avanzar(abb_iter_t *iter){
 const char *abb_iter_in_ver_actual(const abb_iter_t *iter){
 
     if (pila_esta_vacia(iter->pila)) return NULL;
-    return pila_ver_tope(iter->pila);
+    return pila_ver_tope(iter->pila)->clave;
 }
 
 bool abb_iter_in_al_final(const abb_iter_t *iter){
