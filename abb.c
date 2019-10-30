@@ -1,5 +1,6 @@
 #include "abb.h"
 #include <stdlib.h>
+#include "pila.h"
 
 /*definición del struct nodo */
 typedef struct n_abb{
@@ -19,7 +20,8 @@ struct abb {
 
 /*Definición del struct iterador.*/
 struct abb_iter{
-
+    pila_t* pila;
+    const abb_t* abb;
 };
 
 /*prototipos de funciones nuestras*/
@@ -141,20 +143,55 @@ void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void
 
 abb_iter_t *abb_iter_in_crear(const abb_t *arbol){
 
+    abb_iter_t* iter = malloc(sizeof(abb_iter_t));
+    if (!iter) return NULL;
+
+    iter->pila = pila_crear();
+    if (!iter->pila){
+        free(iter);
+        return NULL;
+    }
+
+    iter->abb = arbol;
+
+    pila_apilar(iter->pila, iter->abb->raiz->clave);
+    while(iter->abb->raiz->izq){
+        pila_apilar(iter->abb->raiz->izq->clave);
+        iter->abb->raiz = iter->abb->raiz->izq;
+    }
+    return iter;
 }
 
 bool abb_iter_in_avanzar(abb_iter_t *iter){
 
+    if (pila_esta_vacia(iter->pila)) return false;
+
+    pila_desapilar(iter->pila);
+    if (iter->abb->raiz->der){
+        pila_apilar(iter->abb->raiz->der->clave);
+        iter->abb->raiz = iter->abb->raiz->der;
+        while(iter->abb->raiz->izq){
+            pila_apilar(iter->abb->raiz->izq->clave);
+            iter->abb->raiz = iter->abb->raiz->izq;
+        }
+    }
+    return true;
 }
 
 const char *abb_iter_in_ver_actual(const abb_iter_t *iter){
 
+    if (pila_esta_vacia(iter->pila)) return NULL;
+    return pila_ver_tope(iter->pila);
 }
 
 bool abb_iter_in_al_final(const abb_iter_t *iter){
 
+    if (pila_esta_vacia(iter->pila)) return true;
+    return false;
 }
 
 void abb_iter_in_destruir(abb_iter_t* iter){
 
+    pila_destruir(iter->pila);
+    free(iter);
 }
