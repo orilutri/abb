@@ -2,6 +2,7 @@
 #define ABB_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 /* ******************************************************************
  *                DEFINICION DE LOS TIPOS DE DATOS
@@ -16,8 +17,6 @@ typedef int (*abb_comparar_clave_t) (const char *, const char *);
 typedef void (*abb_destruir_dato_t) (void *);
 
 typedef struct abb_iter abb_iter_t;
-
-typedef unsigned int size_t;
 
 /* ******************************************************************
  *                    PRIMITIVAS DE LA LISTA
