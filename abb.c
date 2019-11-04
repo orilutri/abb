@@ -121,13 +121,19 @@ void enlazar_nodos(nodo_t* padre, nodo_t* hijo, tipo_hijo_t posicion) {
   return;
 }
 
+_abb_in_order(n_abb_t* raiz, bool visitar(const char*, void *, void *), void *extra) {
+    if (!raiz) return;
+    _abb_in_order(raiz->izq, visitar, extra);
+    visitar(raiz->clave, raiz, extra);
+    _abb_in_order(raiz->der, visitar, extra);
+}
 
 /* ******************************************************************
  *                    PRIMITIVAS DEL ITERADOR INTERNO
  * *****************************************************************/
 
 void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra){
-
+    _abb_in_order(arbol->raiz, visitar, extra);
 }
 
 /* ******************************************************************
@@ -151,5 +157,5 @@ bool abb_iter_in_al_final(const abb_iter_t *iter){
 }
 
 void abb_iter_in_destruir(abb_iter_t* iter){
-
+...
 }
