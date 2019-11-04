@@ -121,6 +121,13 @@ void enlazar_nodos(nodo_t* padre, nodo_t* hijo, tipo_hijo_t posicion) {
   return;
 }
 
+buscar_padre(n_abb_t* raiz, n_abb_t* padre, const char* clave, abb_comparar_clave_t abb_comparar_clave) {
+    if (!raiz || !raiz->izq || !raiz->der) return NULL;
+    if (abb_comparar_clave(clave, raiz->clave) < 0) return buscar_padre(raiz->izq, clave, raiz, abb_comparar_clave);
+    if (abb_comparar_clave(clave, raiz->clave) == 0) return padre;
+    buscar_nodo(raiz->der, clave, raiz, abb_comparar_clave);
+}
+
 _abb_in_order(n_abb_t* raiz, bool visitar(const char*, void *, void *), void *extra) {
     if (!raiz) return;
     _abb_in_order(raiz->izq, visitar, extra);
