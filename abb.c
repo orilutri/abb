@@ -197,7 +197,6 @@ void enlazar_nodos(n_abb_t* padre, n_abb_t* hijo, tipo_hijo_t posicion) {
     return;
 }
 
-<<<<<<< HEAD
 n_abb_t* buscar_padre(n_abb_t* raiz, n_abb_t* padre, const char* clave, abb_comparar_clave_t abb_comparar_clave) {
     if (!raiz || !raiz->izq || !raiz->der) return NULL;
     if (abb_comparar_clave(clave, raiz->clave) < 0) return buscar_padre(raiz->izq,raiz, clave, abb_comparar_clave);
@@ -206,16 +205,6 @@ n_abb_t* buscar_padre(n_abb_t* raiz, n_abb_t* padre, const char* clave, abb_comp
 }
 
 void _abb_in_order(n_abb_t* raiz, bool visitar(const char*, void *, void *), void *extra) {
-=======
-buscar_padre(n_abb_t* raiz, n_abb_t* padre, const char* clave, abb_comparar_clave_t abb_comparar_clave) {
-    if (!raiz || !raiz->izq || !raiz->der) return NULL;
-    if (abb_comparar_clave(clave, raiz->clave) < 0) return buscar_padre(raiz->izq, clave, raiz, abb_comparar_clave);
-    if (abb_comparar_clave(clave, raiz->clave) == 0) return padre;
-    buscar_nodo(raiz->der, clave, raiz, abb_comparar_clave);
-}
-
-_abb_in_order(n_abb_t* raiz, bool visitar(const char*, void *, void *), void *extra) {
->>>>>>> 815e36ad39ad5c6d6ca4156482275897b536f49a
     if (!raiz) return;
     _abb_in_order(raiz->izq, visitar, extra);
     visitar(raiz->clave, raiz, extra);
@@ -283,12 +272,7 @@ bool abb_iter_in_al_final(const abb_iter_t *iter){
 }
 
 void abb_iter_in_destruir(abb_iter_t* iter){
-<<<<<<< HEAD
 
     pila_destruir(iter->pila);
     free(iter);
 }
-=======
-...
-}
->>>>>>> 815e36ad39ad5c6d6ca4156482275897b536f49a
