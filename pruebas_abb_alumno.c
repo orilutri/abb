@@ -7,12 +7,17 @@
 #include <unistd.h>  // For ssize_t in Linux.
 
 
+
 /* ******************************************************************
  *                        PRUEBAS UNITARIAS
  * *****************************************************************/
 
-void prueba_abb_vacio(abb_t* abb) {
-    if (!abb) abb = abb_crear(strcmp, NULL);
+void prueba_abb_vacio() {
+    printf("\n~~PRUEBA ABB VACÍO~~\n");
+    /* Declaro Variables */
+    abb_t* abb = abb_crear(strcmp, NULL);
+
+    /* Inicio de pruebas */
     print_test("La cantidad es 0", abb_cantidad(abb) == 0);
     print_test("La clave A no percenece", !abb_pertenece(abb, "A"));
     print_test("No se puede borrar la clave A", abb_borrar(abb, "A") == NULL);
@@ -25,7 +30,7 @@ void prueba_abb_vacio(abb_t* abb) {
 }
 
 void prueba_abb_guardar() {
-
+    printf("\n~~PRUEBA ABB GUARDAR~~\n");
     /* Declaro Variables */
     int a = 1;
     int b = 2;
@@ -46,7 +51,7 @@ void prueba_abb_guardar() {
 }
 
 void prueba_abb_reemplazar() {
-
+    printf("\n~~PRUEBA ABB REEMPLAZAR~~\n");
     /* Declaro Variables */
     int a = 1;
     int b = 2;
@@ -70,7 +75,8 @@ void prueba_abb_reemplazar() {
 }
 
 void prueba_abb_reemplazar_destruir() {
-     /* Declaro Variables */
+    printf("\n~~PRUEBA ABB REEMPLAZAR DESTRUIR~~\n");
+    /* Declaro Variables */
     int* a = malloc(sizeof(int));
     *a = 1;
     int* b = malloc(sizeof(int));
@@ -104,7 +110,7 @@ void prueba_abb_reemplazar_destruir() {
 }
 
 void prueba_abb_borrar() {
-
+    printf("\n~~PRUEBA ABB BORRAR~~\n");
     /* Declaro variables */
     abb_t* abb = abb_crear(strcmp, NULL);
     int a = 1;
@@ -149,7 +155,7 @@ void prueba_abb_borrar() {
 }
 
 void prueba_abb_clave_vacia() {
-
+    printf("\n~~PRUEBA ABB CLAVE VACÍA~~\n");
     /* Declaro Variables */
     int a = 1;
     abb_t* abb = abb_crear(strcmp, NULL);
@@ -166,9 +172,9 @@ void prueba_abb_clave_vacia() {
 }
 
 void prueba_abb_valor_null() {
-
+    printf("\n~~PRUEBA ABB VALOR NULL~~\n");
     /* Declaro variables */
-    int* a = NULL
+    int* a = NULL;
     abb_t* abb = abb_crear(strcmp, NULL);
 
     /* Inicio de Pruebas */
@@ -180,14 +186,74 @@ void prueba_abb_valor_null() {
     print_test("La cantidad de elementos es 0", abb_cantidad(abb) == 0);
 }
 
+char* itoa(int val, int base){
+	static char buf[32] = {0};
+	int i = 30;
+	for(; val && i ; --i, val /= base)
+		buf[i] = "0123456789abcdef"[val % base];
+	return &buf[i+1];
+}
+
+void prueba_volumen() {
+    printf("\n~~PRUEBA ABB VOLUMEN~~\n");
+    /* Declaro variables */
+    char* arreglo[1000];
+    int aux = 0;
+    abb_t* abb = abb_crear(strcmp, NULL);
+    int j = 2;
+    int k = 4;
+    for (int i = 0; i < 1000; i++) {
+        arreglo[i] = itoa(j, 10);
+        i++;
+        arreglo[i] = itoa(k, 10);
+        j++;
+        k+=2;
+    }
+
+    /* Inicio de pruebas */
+    for (int i = 0; i < 1000; i ++) {
+        abb_guardar(abb, arreglo[i], arreglo[i]);
+    }
+    print_test("La cantidad de elementos es 1000", abb_cantidad(abb) == 1000);
+    for (int i = 999; i >= 0; i--) {
+        if (!abb_pertenece(abb, arreglo[i])) {
+            print_test("El elemento pertenece", false);
+            aux = -1;
+            break;
+        }
+        if (abb_obtener(abb, arreglo[i]) != arreglo[i]) {
+            print_test("El valor obtenido es correcto", false);
+            aux = -1;
+            break;
+        }
+        if (abb_borrar(abb, arreglo[i]) != arreglo[i]) {
+            print_test("El valor borrado es correcto", false);
+            aux = -1;
+            break;
+        }
+        if (abb_pertenece(abb, arreglo[i])) {
+            print_test("El valor fue borrado correctamente", false);
+            aux = -1;
+            break;
+        }
+        if (abb_cantidad(abb) != i) {
+            print_test("La cantidad es correcta", false);
+            aux = -1;
+            break;
+        }
+    }
+    print_test("Se cumple la invariante para 1000 casos", aux == 0);
+    print_test("El arbol está vacío", abb_cantidad(abb) == 0);
+}
+
 
 /* ******************************************************************
  *                        FUNCIÓN PRINCIPAL
  * *****************************************************************/
 
-void pruebas_abb_alumno(){
+void pruebas_abb_alumno(void) {
     /* Ejecuta todas las pruebas unitarias. */
-    void prueba_abb_vacio(NULL);
+    void prueba_abb_vacio();
     void prueba_iterar_abb_vacio();
     void prueba_abb_guardar();
     void prueba_abb_reemplazar();
@@ -196,6 +262,6 @@ void pruebas_abb_alumno(){
     void prueba_abb_clave_vacia();
     void prueba_abb_valor_null();
     void prueba_volumen();
-    void prueba_iterar();
-    void prueba_iterar_volumen();
+    //void prueba_iterar();
+    //void prueba_iterar_volumen();
 }
