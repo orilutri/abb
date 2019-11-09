@@ -1,4 +1,5 @@
 #include "abb.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include "pila.h"
 
@@ -28,11 +29,11 @@ struct abb_iter{
 
 /*prototipos de funciones nuestras*/
 n_abb_t* crear_nodo(const char* clave,void*dato);
-bool abb_buscar(n_abb_t* raiz, abb_comparar_clave_t abb_comparar_clave, const char* clave);
+n_abb_t* abb_buscar(n_abb_t* raiz, abb_comparar_clave_t abb_comparar_clave, const char* clave);
 void enlazar_nodos(n_abb_t* padre, n_abb_t* hijo, tipo_hijo_t posicion);
 n_abb_t* buscar_padre(n_abb_t* raiz, n_abb_t* padre, const char* clave, abb_comparar_clave_t abb_comparar_clave);
-bool _abb_guardar(n_abb_t* raiz, const char *clave, void *dato, abb_comparar_clave_t abb_comparar_clave, abb_destruir_dato_t abb_destruir_dato, size_t cant);
-void _abb_destruir(n_abb_t* raiz, abb_destruir_dato_t abb_destruir_dato, abb_t* arbol);
+bool _abb_guardar(abb_t* arbol, n_abb_t* raiz, const char* clave, void* dato, n_abb_t* padre);
+void _abb_destruir(n_abb_t* raiz, abb_t* arbol);
 
 /* *****************************************************************
  *                    PRIMITIVAS DEL ABB
@@ -52,44 +53,44 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato){
     return abb;
 }
 
-bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
-
-    if(!arbol) return false;
-    //ver si tengo que pasar la cantidad como un puntero
-    return _abb_guardar(arbol->raiz, clave, dato, arbol->abb_comparar_clave, arbol->abb_destruir_dato, arbol->cant);
+bool abb_guardar(abb_t *arbol, const char *clave, void *dato) {
+    if (!arbol) return false;
+    return _abb_guardar(arbol, arbol->raiz, clave, dato, NULL);
 }
 
-bool _abb_guardar(n_abb_t* raiz, const char *clave, void *dato, abb_comparar_clave_t abb_comparar_clave, abb_destruir_dato_t abb_destruir_dato, size_t cant){
-
-    if(!raiz){
-        n_abb_t* nuevo_nodo = crear_nodo(clave, dato);
-        if(!nuevo_nodo) return false;
-        raiz = nuevo_nodo;
-    }else{
-        const char* clave_raiz = raiz->clave;
-        if(abb_comparar_clave(clave_raiz, clave) == 0){
-            abb_destruir_dato(raiz->dato);
-            raiz->dato = dato;
-        }else if(abb_comparar_clave(clave_raiz, clave) > 0){
-            _abb_guardar(raiz->izq, clave, dato, abb_comparar_clave, abb_destruir_dato, cant);
-        }else{
-            _abb_guardar(raiz->der, clave, dato, abb_comparar_clave, abb_destruir_dato, cant);
+bool _abb_guardar(abb_t* arbol, n_abb_t* raiz, const char* clave, void* dato, n_abb_t* padre) {
+    if (!raiz) {
+        n_abb_t* aux = crear_nodo(clave, dato);
+        if (aux == NULL) return false;
+        if (padre == NULL) arbol->raiz = aux;
+        else if (arbol->abb_comparar_clave(clave, padre->clave) > 0) padre->der = aux;
+        else padre->izq = aux;
+        arbol->cant++;
+        return true;
         }
+    if (arbol->abb_comparar_clave(raiz->clave, clave) == 0) {
+        raiz->dato = dato;
+        return true;
     }
-    cant++;
-    return true;
+    if (arbol->abb_comparar_clave(raiz->clave, clave) < 0) return _abb_guardar(arbol, raiz->der, clave, dato, raiz);
+    return _abb_guardar(arbol, raiz->izq, clave, dato, raiz);
 }
 
 void *abb_borrar(abb_t *arbol, const char *clave){
-
+    if (!abb_pertenece(arbol, clave)) return NULL;
     n_abb_t* padre = buscar_padre(arbol->raiz, NULL, clave, arbol->abb_comparar_clave);
-    if (!padre && !arbol->raiz) return NULL;
     n_abb_t* nodo;
     tipo_hijo_t tipo_hijo;
+    if (arbol->cant == 1) {
+        nodo = arbol->raiz;
+        arbol->raiz = NULL;
+        arbol->cant--;
+        return nodo->dato;
+    }
     if (!padre) {
         nodo = arbol->raiz;
         tipo_hijo = RAIZ;
-    } else if (padre->izq->clave == clave) {
+    } else if (padre->izq && padre->izq->clave == clave) {
         nodo = padre->izq;
         tipo_hijo = HIJO_IZQ;
     } else {
@@ -100,13 +101,12 @@ void *abb_borrar(abb_t *arbol, const char *clave){
 
     /* Caso sin hijos */
     if (!nodo->izq && !nodo->der) {
-        if (!padre) arbol->raiz = NULL;
-        else enlazar_nodos(padre, nodo, tipo_hijo);
+        enlazar_nodos(padre, NULL, tipo_hijo);
         free(nodo);
     }
 
     /* Caso con un hijo */
-    if((!nodo->izq && nodo->der) || (nodo->izq && !nodo->der)) {
+    else if((!nodo->izq && nodo->der) || (nodo->izq && !nodo->der)) {
         if (!padre) {
             if (nodo->izq) arbol->raiz = nodo->izq;
             else arbol->raiz = nodo->der;
@@ -124,82 +124,72 @@ void *abb_borrar(abb_t *arbol, const char *clave){
         nodo->clave = clave_reemp;
         nodo->dato = dato_reemp;
     }
+    arbol->cant--; //Checkear esto
     return dato;
 }
 
 void *abb_obtener(const abb_t *arbol, const char *clave){
-
-    if(!arbol) return NULL;
-    if(abb_buscar(arbol->raiz, arbol->abb_comparar_clave, clave)) return arbol->raiz->dato;
+    if (!arbol) return NULL;
+    n_abb_t* nodo = abb_buscar(arbol->raiz, arbol->abb_comparar_clave, clave);
+    if (nodo) return nodo->dato;
     return NULL;
 }
 
-bool abb_pertenece(const abb_t *arbol, const char *clave){
-
+bool abb_pertenece(const abb_t *arbol, const char *clave) {
     if (!arbol) return false;
-    if (!abb_buscar(arbol->raiz, arbol->abb_comparar_clave, clave)) return true;
-    return false;
+    return abb_buscar(arbol->raiz, arbol->abb_comparar_clave, clave) != NULL;
 }
 
 size_t abb_cantidad(abb_t *arbol){
-    
     return arbol->cant;
 }
 
 void abb_destruir(abb_t *arbol){
-
     if (!arbol) return;
-    _abb_destruir(arbol->raiz, arbol->abb_destruir_dato, arbol);
+    _abb_destruir(arbol->raiz, arbol);
+    if (arbol->raiz && arbol->abb_destruir_dato) {
+        arbol->abb_destruir_dato(arbol->raiz);
+    }
+    if (arbol->raiz) free(arbol->raiz); // ACÁ ESTÁ EL ERROR
+    free(arbol);
 }
 
-void _abb_destruir(n_abb_t* raiz, abb_destruir_dato_t abb_destruir_dato, abb_t* arbol){
-
-    if (!raiz) return;
-    if (!raiz->izq && !raiz->der){
-        abb_destruir_dato(raiz->dato);
-        abb_borrar(arbol, raiz->clave); //ESTO ESTA BIEN???
-        free(arbol); //ESTO VA???
-    }else if (raiz->izq){
-        _abb_destruir(raiz->izq, abb_destruir_dato, arbol);
-    }else{
-        _abb_destruir(raiz->der, abb_destruir_dato, arbol);
-    }
+void _abb_destruir(n_abb_t* raiz, abb_t* arbol){
+    if (!raiz || (!raiz->izq && !raiz->der)) return;
+    _abb_destruir(raiz->izq, arbol);
+    _abb_destruir(raiz->der, arbol);
+    void* dato = abb_borrar(arbol, raiz->clave);
+    if (arbol->abb_destruir_dato) arbol->abb_destruir_dato(dato);   
 }
 
 /*funciones nuestras*/
-n_abb_t* crear_nodo(const char* clave,void*dato){
-
+n_abb_t* crear_nodo(const char* clave, void* dato) {
     n_abb_t* nuevo_nodo = malloc(sizeof(n_abb_t));
-    if (! nuevo_nodo) return NULL;
-
+    if (!nuevo_nodo) return NULL;
     nuevo_nodo->clave = clave;
     nuevo_nodo->dato = dato;
     nuevo_nodo->izq = NULL;
     nuevo_nodo->der = NULL;
-
     return nuevo_nodo; 
 }
 
-bool abb_buscar(n_abb_t* raiz, abb_comparar_clave_t abb_comparar_clave, const char* clave){
-
-    if(!raiz) return false;
-    if (abb_comparar_clave(raiz->clave, clave) == 0) return true;
-    else if (abb_comparar_clave(raiz->clave, clave) > 0){
-        return abb_buscar(raiz->izq, abb_comparar_clave,clave);   
-    }else{
-        return abb_buscar(raiz->der, abb_comparar_clave, clave);
-    }
+n_abb_t* abb_buscar(n_abb_t* raiz, abb_comparar_clave_t abb_comparar_clave, const char* clave){
+    if (!raiz) return NULL;
+    if (abb_comparar_clave(clave, raiz->clave) == 0) return raiz;
+    if (abb_comparar_clave(clave, raiz->clave) < 0) return abb_buscar(raiz->izq, abb_comparar_clave, clave);
+    return abb_buscar(raiz->der, abb_comparar_clave, clave);
 }
 
 void enlazar_nodos(n_abb_t* padre, n_abb_t* hijo, tipo_hijo_t posicion) {
     if (posicion == HIJO_IZQ) padre->izq = hijo;
     else padre->der = hijo;
-    return;
 }
-
+/*
+  Precondición: el nodo debe pertenecer al árbol para hallar a su padre.
+*/
 n_abb_t* buscar_padre(n_abb_t* raiz, n_abb_t* padre, const char* clave, abb_comparar_clave_t abb_comparar_clave) {
-    if (!raiz || !raiz->izq || !raiz->der) return NULL;
-    if (abb_comparar_clave(clave, raiz->clave) < 0) return buscar_padre(raiz->izq,raiz, clave, abb_comparar_clave);
+    if (!raiz) return NULL;
+    if (abb_comparar_clave(clave, raiz->clave) < 0) return buscar_padre(raiz->izq, raiz, clave, abb_comparar_clave);
     if (abb_comparar_clave(clave, raiz->clave) == 0) return padre;
     return buscar_padre(raiz->der, raiz, clave, abb_comparar_clave);
 }
