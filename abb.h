@@ -93,6 +93,6 @@ void abb_iter_in_destruir(abb_iter_t* iter);
  * *****************************************************************/
 
 // Realiza pruebas sobre la implementación del alumno.
-void pruebas_lista_alumno(void);
+void pruebas_abb_alumno(void);
 
-#endif // LISTA_H
+#endif // ABB_H
