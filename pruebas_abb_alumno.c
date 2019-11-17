@@ -338,7 +338,7 @@ bool multiplicar_por_dos_hasta(const char *clave, void *dato, void *extra) {
     return true;
 }
 
-void prueba_iterador_externo() {
+void prueba_iterador_interno() {
     printf("\n~~PRUEBA ITERADOR EXTERNO~~\n");
 
     /*Declaro Variables */
@@ -415,6 +415,29 @@ void prueba_borrar_raiz() {
 
 }
 
+bool print(const char* clave, void* dato, void* extra) {
+    printf("%s\n", clave);
+    return true;
+}
+
+void prueba_iterar_param() {
+    printf("\nITERAR CON PARÁMETROS\n");
+    abb_t* abb = abb_crear(strcmp, NULL);
+    int a = 0;
+    abb_guardar(abb, "d", &a);
+    abb_guardar(abb, "b", &a);
+    abb_guardar(abb, "a", &a);
+    abb_guardar(abb, "c", &a);
+    abb_guardar(abb, "g", &a);
+    abb_guardar(abb, "f", &a);
+    abb_guardar(abb, "e", &a);
+    abb_guardar(abb, "h", &a);
+    char* min = "b";
+    char* max = "g";
+    abb_in_order_param(abb, print, min, max);
+    abb_destruir(abb);
+}
+
 /* ******************************************************************
  *                        FUNCIÓN PRINCIPAL
  * *****************************************************************/
@@ -431,7 +454,8 @@ void pruebas_abb_alumno(void) {
     prueba_abb_clave_vacia();
     prueba_abb_valor_null();
     prueba_volumen();
-    prueba_iterador_externo();
+    prueba_iterador_interno();
     prueba_iterar();
     prueba_iterar_volumen();
+    prueba_iterar_param();
 }

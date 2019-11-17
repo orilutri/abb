@@ -36,6 +36,8 @@ void enlazar_nodos(abb_t* arbol, n_abb_t* padre, n_abb_t* hijo, tipo_hijo_t posi
 n_abb_t* buscar_padre(n_abb_t* raiz, n_abb_t* padre, const char* clave, abb_comparar_clave_t abb_comparar_clave);
 bool _abb_guardar(abb_t* arbol, n_abb_t* raiz, const char* clave, void* dato, n_abb_t* padre);
 void _abb_destruir(n_abb_t* raiz, abb_t* arbol);
+bool _abb_in_order(n_abb_t* raiz, bool visitar(const char*, void *, void *), void *extra);
+bool _abb_in_order_param(n_abb_t *raiz, bool visitar(const char*, void *, void *), char* min, char* max, abb_comparar_clave_t cmp);
 
 /* *****************************************************************
  *                    PRIMITIVAS DEL ABB
@@ -185,11 +187,20 @@ n_abb_t* buscar_padre(n_abb_t* raiz, n_abb_t* padre, const char* clave, abb_comp
     return buscar_padre(raiz->der, raiz, clave, abb_comparar_clave);
 }
 
-void _abb_in_order(n_abb_t* raiz, bool visitar(const char*, void *, void *), void *extra) {
-    if (!raiz) return;
-    _abb_in_order(raiz->izq, visitar, extra);
-    if (!visitar(raiz->clave, raiz->dato, extra)) return;
-    _abb_in_order(raiz->der, visitar, extra);
+bool _abb_in_order(n_abb_t* raiz, bool visitar(const char*, void *, void *), void *extra) {
+    if (!raiz) return true;
+    if (!_abb_in_order(raiz->izq, visitar, extra)) return false;
+    if (!visitar(raiz->clave, raiz->dato, extra)) return false;
+    if (!_abb_in_order(raiz->der, visitar, extra)) return false;
+    return true;
+}
+
+bool _abb_in_order_param(n_abb_t *raiz, bool visitar(const char*, void *, void *), char* min, char* max, abb_comparar_clave_t cmp) {
+    if (!raiz) return true;
+    if (cmp(raiz->clave, min) > 0) _abb_in_order_param(raiz->izq, visitar, min, max, cmp);
+    visitar(raiz->clave, raiz->dato, NULL);
+    if (cmp(raiz->clave, max) < 0) _abb_in_order_param(raiz->der, visitar, min, max, cmp);
+    return true;
 }
 
 /* ******************************************************************
@@ -198,6 +209,10 @@ void _abb_in_order(n_abb_t* raiz, bool visitar(const char*, void *, void *), voi
 
 void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra){
     _abb_in_order(arbol->raiz, visitar, extra);
+}
+
+void abb_in_order_param(abb_t *arbol, bool visitar(const char *, void *, void *), char* min, char* max) {
+    _abb_in_order_param(arbol->raiz, visitar, min, max, arbol->abb_comparar_clave);
 }
 
 /* ******************************************************************

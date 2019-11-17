@@ -64,6 +64,10 @@ void abb_destruir(abb_t *arbol);
 //Pre: el abb fue creado.
 void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra);
 
+//Recorre el abb y aplica la función visitar a cada uno de los nodos que pertenezcan al rango
+//max y min. Extra debe contener el min y el max.
+void abb_in_order_param(abb_t *arbol, bool visitar(const char *, void *, void *), char* min, char* max);
+
 /* ******************************************************************
  *                    PRIMITIVAS DEL ITERADOR EXTERNO
  * *****************************************************************/
@@ -92,6 +96,6 @@ void abb_iter_in_destruir(abb_iter_t* iter);
  * *****************************************************************/
 
 // Realiza pruebas sobre la implementación del alumno.
-void pruebas_lista_alumno(void);
+void pruebas_abb_alumno(void);
 
-#endif // LISTA_H
+#endif // ABB_H
